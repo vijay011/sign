@@ -1,5 +1,5 @@
 # Adjusted requirements.txt
-opencv-python-headless
+opencv-python==4.8.0.76
 
 # Specify a compatible version range for numpy
 numpy>=1.26.0
