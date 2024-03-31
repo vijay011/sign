@@ -28,14 +28,15 @@ class VideoProcessor:
 def predict_sign():
     processor = webrtc_app()  # Get the video processor
     while True:
-        if processor.frame is not None:
+        if processor and processor.frame is not None:  # Check if processor exists and frame is available
             frame = processor.frame
             predicted_label = predict_label(frame)  # Call your prediction function
             st.image(frame, caption='Sign Language Gesture')
             st.write('Predicted Label:', predicted_label)
             # You can also display other information or process the frame further
         else:
-            break  # No frame available yet
+            st.write("Waiting for frames...")  # Display a message if no frame is available
+            st.stop()  # Stop execution until frame is available
 
 # Main function to run the app
 def main():
