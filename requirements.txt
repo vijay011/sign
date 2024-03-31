@@ -1,10 +1,8 @@
 # Adjusted requirements.txt
+opencv-python>=4.5.3.56
 
 # Specify a compatible version range for numpy
 numpy>=1.21.2
-
-# Specify a compatible version range for opencv-python
-opencv-python>=4.5.3.56
 
 # Specify a compatible version range for tensorflow
 tensorflow>=2.6.0
