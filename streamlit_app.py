@@ -34,11 +34,16 @@ def predict_sign(frame):
 # Open webcam
 cap = cv2.VideoCapture(0)
 
+# Check if the camera is opened successfully
+if not cap.isOpened():
+    st.error("Error: Unable to access the camera. Please ensure that the camera is connected and accessible.")
+    st.stop()  # Stop execution of the app
+
 # Main loop
 while True:
     ret, frame = cap.read()
     if not ret:
-        st.error("Error capturing frame from the camera.")
+        st.error("Error: Unable to capture frame from the camera.")
         break
 
     # Make prediction
@@ -54,4 +59,3 @@ while True:
 
 # Release the webcam and close the application
 cap.release()
-
