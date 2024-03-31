@@ -1,5 +1,16 @@
-opencv-python==4.5.3.56
-numpy==1.21.2
-tensorflow==2.6.0
-keras==2.6.0
-streamlit==0.89.0
+# Adjusted requirements.txt
+
+# Specify a compatible version range for numpy
+numpy>=1.21.2
+
+# Specify a compatible version range for opencv-python
+opencv-python>=4.5.3.56
+
+# Specify a compatible version range for tensorflow
+tensorflow>=2.6.0
+
+# Specify a compatible version range for keras
+keras>=2.6.0
+
+# Specify a compatible version range for streamlit
+streamlit>=0.89.0
