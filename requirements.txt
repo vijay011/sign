@@ -1,6 +1,9 @@
 # Adjusted requirements.txt
 opencv-python==4.8.0.76
 
+streamlit-webrtc
+
+
 # Specify a compatible version range for numpy
 numpy>=1.26.0
 
