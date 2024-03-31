@@ -10,7 +10,7 @@ from keras.models import load_model
 import streamlit as st
 
 # Load the pre-trained model
-model = load_model('D:/Trained model/sign_language_model.h5')
+model = load_model('sign_language_model.h5')
 class_labels = ['A', 'B', 'C', ...]  # Your class labels
 
 # Streamlit app layout
