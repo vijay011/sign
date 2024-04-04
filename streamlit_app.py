@@ -1,59 +1,82 @@
-# Import necessary libraries
 import cv2
 import numpy as np
 from keras.models import load_model
 import streamlit as st
 
-# Function to load the pre-trained model
-def load_sign_language_model(model_path):
-    return load_model(model_path)
-
-# Function to make predictions
-def predict_sign(frame, model, class_labels):
-    # Preprocess the frame
-    frame = cv2.resize(frame, (200, 200)) / 255.0
-    # Make predictions using the model
-    predictions = model.predict(np.expand_dims(frame, axis=0))
-    # Get the predicted class index
-    predicted_class = np.argmax(predictions)
-    # Get the predicted label
-    if predicted_class < len(class_labels):
-        return class_labels[predicted_class]
-    else:
-        return "Unknown Class"  # Handle out-of-range predictions
+# Load the pre-trained model
+model = load_model('sign_language_model.h5')
+class_labels = ['A', 'B', 'C', ...]  # Your class labels
 
 # Streamlit app layout
 st.title('Sign Language Recognition')
+
+# Function to preprocess and resize images
+def preprocess_image(image):
+    resized_image = cv2.resize(image, (200, 200)) / 255.0
+    return resized_image
+
+# Function to make predictions
+def predict_sign(frame):
+    if frame.ndim == 3:  # If it's an image
+        frame = preprocess_image(frame)
+        predictions = model.predict(np.expand_dims(frame, axis=0))
+        predicted_class = np.argmax(predictions)
+        if predicted_class < len(class_labels):
+            return class_labels[predicted_class]
+        else:
+            return "Unknown Class"  # Handle out-of-range predictions
+    elif frame.ndim == 4:  # If it's a video
+        predicted_labels = []
+        for image in frame:
+            preprocessed_image = preprocess_image(image)
+            predictions = model.predict(np.expand_dims(preprocessed_image, axis=0))
+            predicted_class = np.argmax(predictions)
+            if predicted_class < len(class_labels):
+                predicted_labels.append(class_labels[predicted_class])
+            else:
+                predicted_labels.append("Unknown Class")  # Handle out-of-range predictions
+        return predicted_labels
 
 # Option to use pre-captured sample data
 use_sample_data = st.checkbox('Use Pre-captured Sample Data')
 
 if use_sample_data:
-    # Allow user to upload pre-captured sample data
+    # File uploader for uploading pre-captured sample data
     uploaded_file = st.file_uploader('Upload Pre-captured Sample Data', type=['mp4', 'avi', 'jpg', 'png'])
     
     if uploaded_file is not None:
-        # Check the file extension
         file_extension = uploaded_file.name.split('.')[-1]
         if file_extension in ['mp4', 'avi']:
-            # Process video file
-            st.write("Processing video file...")
-            # Add video processing logic here
+            # Read video file and process each frame
+            video_bytes = uploaded_file.read()
+            video_nparray = np.frombuffer(video_bytes, np.uint8)
+            video_capture = cv2.VideoCapture()
+            video_capture.open(video_nparray)
+            while True:
+                ret, frame = video_capture.read()
+                if not ret:
+                    break
+                predicted_labels = predict_sign(frame)
+                if isinstance(predicted_labels, list):
+                    for label in predicted_labels:
+                        st.write('Predicted Label:', label)
+                else:
+                    st.write('Predicted Label:', predicted_labels)
+                st.image(frame, caption='Sign Language Gesture')
         elif file_extension in ['jpg', 'png']:
-            # Process image file
-            st.write("Processing image file...")
-            # Add image processing logic here
+            # Read image file and make prediction
+            image = cv2.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), 1)
+            predicted_label = predict_sign(image)
+            st.image(image, caption='Sign Language Gesture')
+            st.write('Predicted Label:', predicted_label)
 else:
     # Open webcam
     cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        st.error("Error: Unable to access the camera.")
-        st.stop()
 
-    # Load the pre-trained model and class labels
-    model_path = 'sign_language_model.h5'  # Update with the correct path
-    model = load_sign_language_model(model_path)
-    class_labels = ['A', 'B', 'C', ...]  # Update with your class labels
+    # Check if the camera is opened successfully
+    if not cap.isOpened():
+        st.error("Error: Unable to access the camera. Please ensure that the camera is connected and accessible.")
+        st.stop()  # Stop execution of the app
 
     # Main loop
     while True:
@@ -63,11 +86,13 @@ else:
             break
 
         # Make prediction
-        predicted_label = predict_sign(frame, model, class_labels)
-
-        # Display the frame and predicted label
+        predicted_label = predict_sign(frame)
+        if isinstance(predicted_label, list):
+            for label in predicted_label:
+                st.write('Predicted Label:', label)
+        else:
+            st.write('Predicted Label:', predicted_label)
         st.image(frame, caption='Sign Language Gesture')
-        st.write('Predicted Label:', predicted_label)
 
         # Break the loop if 'Quit' button is pressed
         if st.button('Quit'):
