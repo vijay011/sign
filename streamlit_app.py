@@ -5,7 +5,8 @@ import streamlit as st
 
 # Load the pre-trained model
 model = load_model('sign_language_model.h5')
-class_labels = ['A', 'B', 'C', ...]  # Your class labels
+class_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'del', 'nothing', 'space']
+# Your class labels
 
 # Streamlit app layout
 st.title('Sign Language Recognition')
