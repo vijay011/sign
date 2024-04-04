@@ -2,11 +2,11 @@ import cv2
 import numpy as np
 from keras.models import load_model
 import streamlit as st
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 
 # Load the pre-trained model
 model = load_model('sign_language_model.h5')
 class_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'del', 'nothing', 'space']
-# Your class labels
 
 # Streamlit app layout
 st.title('Sign Language Recognition')
@@ -38,66 +38,29 @@ def predict_sign(frame):
                 predicted_labels.append("Unknown Class")  # Handle out-of-range predictions
         return predicted_labels
 
-# Option to use pre-captured sample data
-use_sample_data = st.checkbox('Use Pre-captured Sample Data')
+# WebRTC video transformer class
+class VideoTransformer(VideoTransformerBase):
+    def __init__(self):
+        self.is_camera_on = False
 
-if use_sample_data:
-    # File uploader for uploading pre-captured sample data
-    uploaded_file = st.file_uploader('Upload Pre-captured Sample Data', type=['mp4', 'avi', 'jpg', 'png'])
-    
-    if uploaded_file is not None:
-        file_extension = uploaded_file.name.split('.')[-1]
-        if file_extension in ['mp4', 'avi']:
-            # Read video file and process each frame
-            video_bytes = uploaded_file.read()
-            video_nparray = np.frombuffer(video_bytes, np.uint8)
-            video_capture = cv2.VideoCapture()
-            video_capture.open(video_nparray)
-            while True:
-                ret, frame = video_capture.read()
-                if not ret:
-                    break
-                predicted_labels = predict_sign(frame)
-                if isinstance(predicted_labels, list):
-                    for label in predicted_labels:
-                        st.write('Predicted Label:', label)
-                else:
-                    st.write('Predicted Label:', predicted_labels)
-                st.image(frame, caption='Sign Language Gesture')
-        elif file_extension in ['jpg', 'png']:
-            # Read image file and make prediction
-            image = cv2.imdecode(np.frombuffer(uploaded_file.read(), np.uint8), 1)
-            predicted_label = predict_sign(image)
-            st.image(image, caption='Sign Language Gesture')
+    def transform(self, frame):
+        if self.is_camera_on:
+            img = frame.to_ndarray(format="bgr24")
+            predicted_label = predict_sign(img)
             st.write('Predicted Label:', predicted_label)
-else:
-    # Open webcam
-    cap = cv2.VideoCapture(0)
-
-    # Check if the camera is opened successfully
-    if not cap.isOpened():
-        st.error("Error: Unable to access the camera. Please ensure that the camera is connected and accessible.")
-        st.stop()  # Stop execution of the app
-
-    # Main loop
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            st.error("Error: Unable to capture frame from the camera.")
-            break
-
-        # Make prediction
-        predicted_label = predict_sign(frame)
-        if isinstance(predicted_label, list):
-            for label in predicted_label:
-                st.write('Predicted Label:', label)
+            st.image(img, caption='Sign Language Gesture')
         else:
-            st.write('Predicted Label:', predicted_label)
-        st.image(frame, caption='Sign Language Gesture')
+            st.write('Camera is turned off.')
 
-        # Break the loop if 'Quit' button is pressed
-        if st.button('Quit'):
-            break
+# Button to toggle the camera on and off
+start_stop_button = st.button("Start/Stop Camera")
 
-    # Release the webcam and close the application
-    cap.release()
+# WebRTC streamer
+webrtc_ctx = webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
+
+# Turn the camera on or off based on the button click
+if start_stop_button:
+    if webrtc_ctx.video_transformer.is_camera_on:
+        webrtc_ctx.stop()
+    else:
+        webrtc_ctx.start()
