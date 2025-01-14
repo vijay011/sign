@@ -5,13 +5,13 @@ streamlit-webrtc
 
 
 # Specify a compatible version range for numpy
-numpy>=1.26.0
+numpy==1.26.0
 
 # Specify a compatible version range for tensorflow
-tensorflow>=2.14.0
+tensorflow==2.14.0
 
 # Specify a compatible version range for keras
-keras>=2.14.0
+keras==2.14.0
 
 # Specify a compatible version range for streamlit
-streamlit>=1.32.2
+streamlit==1.32.2
